@@ -73,3 +73,10 @@ questions live — no database, no rebuild step.
 ## Live app
 
 https://coachmanjeet.github.io/HBA-App/
+
+## Second game: Haryanvi Translation Challenge
+
+https://coachmanjeet.github.io/HBA-App/quiz2.html
+
+5 Haryanvi-to-English translation questions, same engine, separate room code
+(HBA2026Q2) so it never collides with the main quiz.
