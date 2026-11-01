@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Kitna Jaane Ho Haryana Ne? — HBA Quiz</title>
+<style>
+  :root { --green:#0d6b4f; --dark:#0a4d38; --gold:#c9a227; --gold2:#e8c766; --cream:#fdf9ef; --ink:#1c1c1c; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; }
+  .wrap { max-width:560px; margin:0 auto; padding:20px 16px 40px; }
+  .screen { display:none; }
+  .screen.on { display:block; }
+  .logo { width:110px; height:110px; object-fit:cover; border:3px solid var(--gold); border-radius:12px; display:block; margin:6px auto 12px; }
+  h1 { text-align:center; font-size:30px; line-height:1.15; color:var(--dark); }
+  h2 { text-align:center; font-size:22px; color:var(--dark); margin:8px 0; }
+  .sub { text-align:center; color:#555; margin:8px 0 20px; line-height:1.5; }
+  .card { background:#fff; border:2px solid var(--gold); border-radius:16px; padding:18px; margin:14px 0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  .btn { display:block; width:100%; padding:16px; margin:10px 0; font-size:19px; font-weight:700; border:none; border-radius:14px; cursor:pointer; }
+  .btn-green { background:var(--green); color:#fff; }
+  .btn-gold { background:var(--gold); color:#1c1c1c; }
+  .btn-ghost { background:#fff; color:var(--green); border:2px solid var(--green); }
+  .btn:disabled { opacity:.45; }
+  input[type=text] { width:100%; padding:15px; font-size:19px; border:2px solid var(--gold); border-radius:12px; margin:8px 0; }
+  .opt { display:block; width:100%; text-align:left; padding:15px; margin:9px 0; font-size:18px; background:#fff; border:2px solid #ddd; border-radius:12px; cursor:pointer; }
+  .opt:active { transform:scale(.98); }
+  .opt.picked { border-color:var(--green); background:#e4f3ec; }
+  .opt.correct { border-color:#1e9e57; background:#d7f5e2; }
+  .opt.wrong { border-color:#d64545; background:#fde3e3; }
+  .opt:disabled { opacity:1; }
+  .timer { font-size:44px; font-weight:800; text-align:center; color:var(--dark); }
+  .bar { height:14px; background:#eee; border-radius:8px; overflow:hidden; margin:10px 0 16px; }
+  .bar > div { height:100%; background:var(--gold); width:100%; }
+  .pill { display:inline-block; background:var(--dark); color:#fff; padding:4px 12px; border-radius:20px; font-size:14px; margin:2px; }
+  .big { font-size:20px; font-weight:700; text-align:center; }
+  .center { text-align:center; }
+  .muted { color:#666; font-size:14px; }
+  #qrcode { display:flex; justify-content:center; margin:12px 0; }
+  #qrcode img { border:6px solid #fff; outline:2px solid var(--gold); border-radius:8px; }
+  .row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee; font-size:17px; }
+  .row:last-child { border-bottom:none; }
+  .podium { font-size:20px; line-height:2; }
+  .medal1 { color:#b8963e; font-weight:800; }
+  .medal2 { color:#7a7a7a; font-weight:800; }
+  .medal3 { color:#a66a2e; font-weight:800; }
+  .note { background:#fff8dd; border:1px solid var(--gold); border-radius:10px; padding:12px; font-size:14px; line-height:1.5; margin:12px 0; }
+  .err { background:#fde3e3; border:1px solid #d64545; border-radius:10px; padding:12px; font-size:14px; margin:12px 0; display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HOME -->
+  <div id="s-home" class="screen on">
+    <img class="logo" src="logo.png" alt="HBA logo">
+    <h1>🪔 Kitna Jaane Ho Haryana Ne?</h1>
+    <p class="sub">Haryanvi Bay Area Association<br>Diwali &amp; Haryana Day Celebration • Nov 1, 2026<br>Quick-fire quiz • 15 seconds each • Speed bonus</p>
+    <div class="card">
+      <label for="playerName"><b>Your name</b> (for the leaderboard)</label>
+      <input id="playerName" type="text" maxlength="20" placeholder="e.g. Manjeet" autocomplete="off">
+      <button class="btn btn-green" id="btnJoin">Join as Player 📱</button>
+      <button class="btn btn-gold" id="btnHost">I'm the Host 🎤</button>
+      <button class="btn btn-ghost" id="btnSolo">Practice Alone (no internet needed)</button>
+      <div id="homeErr" class="err"></div>
+      <p class="muted center" style="margin-top:10px">Players: open this page, enter your name, tap Join. Host: open this page on the big screen and show the QR code.</p>
+    </div>
+  </div>
+
+  <!-- HOST LOBBY -->
+  <div id="s-host-lobby" class="screen">
+    <h2>🎤 Host Lobby</h2>
+    <p class="sub">Players scan the QR code or open this page and join. Room: <b>HBA2026</b></p>
+    <div class="card center">
+      <div id="qrcode"></div>
+      <div id="hostUrl" class="muted" style="word-break:break-all"></div>
+      <p class="big" style="margin-top:12px"><span id="hostCount">0</span> players joined</p>
+      <div id="hostPlayers" style="text-align:left; margin-top:8px"></div>
+    </div>
+    <div id="hostConn" class="note">Connecting to the live relay… (needs internet; if this stays here, use Practice mode on the big screen instead)</div>
+    <button class="btn btn-green" id="btnStart">▶ Start Game</button>
+    <button class="btn btn-ghost" id="btnBack1">Back</button>
+  </div>
+
+  <!-- PLAYER LOBBY -->
+  <div id="s-player-lobby" class="screen">
+    <h2>You're in, <span id="plName"></span>! 🎉</h2>
+    <p class="sub">Wait for the host to start. Keep this screen open.<br><span class="pill">Room HBA2026</span> <span class="pill" id="plCount">0 players</span></p>
+    <div class="card center">
+      <p class="big">Get ready…</p>
+      <p class="sub">15 seconds per question. Faster correct answers earn a speed bonus. Top 3 make the leaderboard!</p>
+    </div>
+    <div id="plConn" class="note">Connecting…</div>
+    <button class="btn btn-ghost" id="btnBack2">Back</button>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="s-question" class="screen">
+    <p class="center muted"><span id="qNum"></span> • <span id="qRole"></span></p>
+    <div class="timer" id="timer">15</div>
+    <div class="bar"><div id="barFill"></div></div>
+    <h2 id="qText" style="text-align:left"></h2>
+    <div id="opts"></div>
+    <p class="center muted" id="qStatus"></p>
+    <div id="hostLive" class="card center" style="display:none">
+      <p class="big"><span id="ansCount">0</span> answers in</p>
+      <p class="muted">Host view — answers lock automatically at 0.</p>
+    </div>
+  </div>
+
+  <!-- REVEAL -->
+  <div id="s-reveal" class="screen">
+    <h2 id="revHead">Answer</h2>
+    <div class="card">
+      <p class="big" id="revCorrect"></p>
+      <p class="sub" id="revFact"></p>
+      <p class="big" id="revPoints"></p>
+      <p class="center muted" id="revTotal"></p>
+    </div>
+    <div class="card" id="revBoard" style="display:none">
+      <b>Top scores so far</b>
+      <div id="revList"></div>
+    </div>
+    <p class="center muted">Next question coming up…</p>
+  </div>
+
+  <!-- FINAL -->
+  <div id="s-final" class="screen">
+    <h1>🏆 Leaderboard</h1>
+    <p class="sub">Kitna Jaane Ho Haryana Ne? — Final Results</p>
+    <div class="card">
+      <div class="podium" id="podium"></div>
+    </div>
+    <div class="card">
+      <b>Full ranking</b>
+      <div id="fullList"></div>
+    </div>
+    <p class="center big" id="myRank"></p>
+    <button class="btn btn-gold" id="btnAgain">Play Again</button>
+  </div>
+
+</div>
+<script src="https://unpkg.com/mqtt@5/dist/mqtt.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// ---------- QUESTIONS (add more objects here to reach 10) ----------
+const QUESTIONS = [
+  { q: "Haryana shares its border with how many Indian states?",
+    o: ["3", "4", "5", "6"], a: 2,
+    fact: "5 states/UT: Delhi, Rajasthan, Uttar Pradesh, Punjab and Uttarakhand." },
+  { q: "What is the popular sweet of Haryana often made during festivals?",
+    o: ["Jalebi", "Ghevar", "Ladoo", "Malpua"], a: 0,
+    fact: "Jalebi — the festive favourite, best enjoyed hot with milk or rabri." },
+  { q: "How many districts are there in Haryana?",
+    o: ["18", "22", "25", "30"], a: 1,
+    fact: "Haryana has 22 districts." },
+  { q: "How many years since Haryana's formation are we celebrating in 2026?",
+    o: ["50", "55", "60", "65"], a: 2,
+    fact: "Haryana was formed on 1 November 1966 — so 2026 marks 60 years!" },
+  { q: "What is Haryana's state animal?",
+    o: ["Blackbuck", "Tiger", "Elephant", "Nilgai"], a: 0,
+    fact: "The blackbuck — graceful, fast, and protected in Haryana." },
+  { q: "Which sport is Haryana especially famous for?",
+    o: ["Cricket", "Wrestling", "Hockey", "Football"], a: 1,
+    fact: "Wrestling! Haryana's akharas have produced Olympic and world champions." },
+];
+// ---------- CONFIG ----------
+const ROOM = "HBA2026";
+const TOPIC_HOST = "hba/quiz/" + ROOM + "/host";     // host -> players
+const TOPIC_ANS  = "hba/quiz/" + ROOM + "/answers";  // players -> host
+const TOPIC_JOIN = "hba/quiz/" + ROOM + "/join";     // players -> host
+const Q_TIME = 15, REVEAL_TIME = 5;
+const BROKERS = ["wss://broker.hivemq.com:8884/mqtt", "wss://test.mosquitto.org:8081"];
+
+// ---------- STATE ----------
+let role = null;            // 'host' | 'player' | 'solo'
+let myName = "", myId = "p" + Math.random().toString(36).slice(2, 8);
+let client = null, connected = false;
+let qi = -1, scores = {}, players = {}, myScore = 0, myAnswers = {};
+let timerInt = null, timeLeft = Q_TIME, locked = false, lastState = null;
+
+const $ = id => document.getElementById(id);
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+  $(id).classList.add("on");
+}
+function showErr(id, msg) { const e = $(id); e.style.display = "block"; e.textContent = msg; }
+function boardHTML(map, limit) {
+  const rows = Object.values(map).sort((a, b) => b.score - a.score);
+  if (!rows.length) return "<p class='muted'>No scores yet.</p>";
+  return rows.slice(0, limit || rows.length).map((r, i) =>
+    `<div class="row"><span>${i + 1}. ${esc(r.name)}</span><b>${r.score} pts</b></div>`).join("");
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// ---------- MQTT ----------
+function mqttConnect(onOk, onFail) {
+  if (typeof mqtt === "undefined") { onFail("Relay library failed to load (offline?)."); return; }
+  let bi = 0;
+  function attempt() {
+    if (bi >= BROKERS.length) { onFail("Could not reach the live relay. Check internet / venue WiFi."); return; }
+    try {
+      const c = mqtt.connect(BROKERS[bi], { clientId: "hba-" + myId + "-" + Date.now(), clean: true, connectTimeout: 6000 });
+      const to = setTimeout(() => { try { c.end(true); } catch (e) {} bi++; attempt(); }, 8000);
+      c.on("connect", () => { clearTimeout(to); client = c; connected = true; onOk(); });
+      c.on("error", () => { clearTimeout(to); try { c.end(true); } catch (e) {} bi++; attempt(); });
+    } catch (e) { bi++; attempt(); }
+  }
+  attempt();
+}
+function pub(topic, obj) {
+  if (client && connected) { try { client.publish(topic, JSON.stringify(obj)); } catch (e) {} }
+}
+
+// ---------- QUESTION FLOW (shared) ----------
+function renderQuestion(q, startTs, isHost) {
+  qi = q.i;
+  locked = false;
+  $("qNum").textContent = "Question " + (q.i + 1) + " of " + QUESTIONS.length;
+  $("qRole").textContent = isHost ? "Host view" : "Your turn!";
+  $("qText").textContent = q.q;
+  $("hostLive").style.display = isHost ? "block" : "none";
+  $("ansCount").textContent = "0";
+  const opts = $("opts"); opts.innerHTML = "";
+  q.o.forEach((txt, i) => {
+    const b = document.createElement("button");
+    b.className = "opt"; b.textContent = String.fromCharCode(65 + i) + ". " + txt;
+    b.onclick = () => { if (!isHost) answer(i, b); };
+    if (isHost) b.disabled = true;
+    opts.appendChild(b);
+  });
+  $("qStatus").textContent = isHost ? "Players are answering…" : "Tap an answer — faster = more points!";
+  show("s-question");
+  clearInterval(timerInt);
+  const tick = () => {
+    const left = Math.max(0, Q_TIME - Math.floor((Date.now() - startTs) / 1000));
+    timeLeft = left;
+    $("timer").textContent = left;
+    $("barFill").style.width = (left / Q_TIME * 100) + "%";
+    if (left <= 0) {
+      clearInterval(timerInt);
+      if (isHost) hostReveal();
+      else {
+        document.querySelectorAll(".opt").forEach(b => b.disabled = true);
+        if (!locked) { locked = true; $("qStatus").textContent = "Time's up! Waiting for the reveal…"; }
+      }
+    }
+  };
+  tick();
+  timerInt = setInterval(tick, 200);
+}
+function answer(choice, btn) {
+  if (locked || (role !== "player" && role !== "solo")) return;
+  locked = true;
+  document.querySelectorAll(".opt").forEach(b => b.disabled = true);
+  btn.classList.add("picked");
+  const tl = timeLeft;
+  myAnswers[qi] = { choice, tl };
+  pub(TOPIC_ANS, { id: myId, name: myName, q: qi, choice, tl });
+  $("qStatus").textContent = "Locked in! Waiting for the reveal…";
+}
+function showReveal(correct, fact, points, total, board) {
+  clearInterval(timerInt);
+  const q = QUESTIONS[qi];
+  $("revHead").textContent = "Question " + (qi + 1) + " — Answer";
+  $("revCorrect").textContent = "✅ Correct: " + String.fromCharCode(65 + correct) + ". " + q.o[correct];
+  $("revFact").textContent = fact;
+  if (role === "player" || role === "solo") {
+    $("revPoints").textContent = points > 0 ? "+" + points + " points!" : "No points this time — next one!";
+    $("revTotal").textContent = "Your total: " + total + " pts";
+  } else { $("revPoints").textContent = ""; $("revTotal").textContent = ""; }
+  if (board) { $("revBoard").style.display = "block"; $("revList").innerHTML = boardHTML(board, 5); }
+  else $("revBoard").style.display = "none";
+  show("s-reveal");
+}
+function showFinal(board) {
+  clearInterval(timerInt);
+  const rows = Object.values(board).sort((a, b) => b.score - a.score);
+  const medals = ["🥇", "🥈", "🥉"];
+  $("podium").innerHTML = rows.slice(0, 3).map((r, i) =>
+    `<div class="${i === 0 ? "medal1" : i === 1 ? "medal2" : "medal3"}">${medals[i]} ${esc(r.name)} — ${r.score} pts</div>`).join("")
+    || "<p class='muted'>No scores yet.</p>";
+  $("fullList").innerHTML = boardHTML(board, 100);
+  if (role === "player" || role === "solo") {
+    const me = rows.findIndex(r => r.id === myId);
+    $("myRank").textContent = me >= 0 ? "You finished #" + (me + 1) + " with " + myScore + " pts! 🎉" : "";
+  } else $("myRank").textContent = "";
+  show("s-final");
+}
+
+// ---------- SOLO MODE ----------
+function soloStart() {
+  role = "solo"; myScore = 0; myAnswers = {}; qi = -1;
+  soloNext();
+}
+function soloNext() {
+  qi++;
+  if (qi >= QUESTIONS.length) { showFinal({ [myId]: { id: myId, name: myName || "You", score: myScore } }); return; }
+  const q = QUESTIONS[qi];
+  renderQuestion({ i: qi, q: q.q, o: q.o }, Date.now(), false);
+  // solo: answering handled by answer() but score locally on timeout
+  const wait = setInterval(() => {
+    if (timeLeft <= 0) {
+      clearInterval(wait);
+      const a = myAnswers[qi];
+      let pts = 0;
+      if (a && a.choice === q.a) pts = 100 + Math.round(50 * a.tl / Q_TIME);
+      myScore += pts;
+      document.querySelectorAll(".opt").forEach((b, i) => {
+        if (i === q.a) b.classList.add("correct");
+        if (a && a.choice === i && i !== q.a) b.classList.add("wrong");
+      });
+      showReveal(q.a, q.fact, pts, myScore, null);
+      setTimeout(soloNext, REVEAL_TIME * 1000);
+    }
+  }, 300);
+}
+// solo answer path: reuse answer() but it publishes (no-op offline) — fine.
+
+// ---------- HOST ----------
+let answeredThisQ = new Set();
+function hostLobbyUI() {
+  $("hostCount").textContent = Object.keys(players).length;
+  $("hostPlayers").innerHTML = Object.values(players).map(p =>
+    `<div class="row"><span>👤 ${esc(p.name)}</span><span class="muted">${p.score} pts</span></div>`).join("")
+    || "<p class='muted'>No players yet — they join by scanning the QR code.</p>";
+}
+function hostNext() {
+  qi++;
+  if (qi >= QUESTIONS.length) {
+    const msg = { type: "final", board: scores };
+    lastState = msg; pub(TOPIC_HOST, msg);
+    showFinal(scores); return;
+  }
+  answeredThisQ = new Set();
+  const q = QUESTIONS[qi];
+  const msg = { type: "question", i: qi, q: q.q, o: q.o, startTs: Date.now() };
+  lastState = msg; pub(TOPIC_HOST, msg);
+  renderQuestion(msg, msg.startTs, true);
+}
+function hostReveal() {
+  const q = QUESTIONS[qi];
+  const msg = { type: "reveal", i: qi, correct: q.a, fact: q.fact, board: scores };
+  lastState = msg; pub(TOPIC_HOST, msg);
+  showReveal(q.a, q.fact, 0, 0, scores);
+  setTimeout(hostNext, REVEAL_TIME * 1000);
+}
+function onHostMessage(topic, obj) {
+  if (topic === TOPIC_JOIN) {
+    if (!players[obj.id]) players[obj.id] = { id: obj.id, name: obj.name, score: 0 };
+    if (!scores[obj.id]) scores[obj.id] = { id: obj.id, name: obj.name, score: 0 };
+    hostLobbyUI();
+    pub(TOPIC_HOST, { type: "lobby", count: Object.keys(players).length });
+    if (lastState) pub(TOPIC_HOST, lastState); // late joiner catches up
+  }
+  if (topic === TOPIC_ANS && obj.q === qi && !answeredThisQ.has(obj.id)) {
+    answeredThisQ.add(obj.id);
+    $("ansCount").textContent = answeredThisQ.size;
+    if (!scores[obj.id]) scores[obj.id] = { id: obj.id, name: obj.name, score: 0 };
+    if (obj.choice === QUESTIONS[qi].a)
+      scores[obj.id].score += 100 + Math.round(50 * obj.tl / Q_TIME);
+  }
+}
+
+// ---------- PLAYER ----------
+function onPlayerMessage(obj) {
+  if (obj.type === "lobby") { $("plCount").textContent = obj.count + " players"; return; }
+  if (obj.type === "question") { lastState = obj; renderQuestion(obj, obj.startTs, false); return; }
+  if (obj.type === "reveal") {
+    lastState = obj; qi = obj.i;
+    const a = myAnswers[obj.i];
+    let pts = 0;
+    if (a && a.choice === obj.correct) pts = 100 + Math.round(50 * a.tl / Q_TIME);
+    myScore += pts;
+    document.querySelectorAll(".opt").forEach((b, i) => {
+      if (i === obj.correct) b.classList.add("correct");
+      if (a && a.choice === i && i !== obj.correct) b.classList.add("wrong");
+    });
+    showReveal(obj.correct, obj.fact, pts, myScore, obj.board); return;
+  }
+  if (obj.type === "final") { showFinal(obj.board); return; }
+}
+
+// ---------- WIRING ----------
+$("btnJoin").onclick = () => {
+  const n = $("playerName").value.trim();
+  if (!n) { showErr("homeErr", "Please enter your name first."); return; }
+  myName = n; role = "player"; myScore = 0; myAnswers = {};
+  $("plName").textContent = myName;
+  show("s-player-lobby");
+  mqttConnect(() => {
+    client.subscribe(TOPIC_HOST);
+    client.on("message", (t, m) => { try { onPlayerMessage(JSON.parse(m.toString())); } catch (e) {} });
+    pub(TOPIC_JOIN, { id: myId, name: myName });
+    $("plConn").textContent = "Connected ✓ Waiting for the host to start…";
+  }, (msg) => { $("plConn").textContent = "⚠ " + msg + " — you can still use Practice Alone from the home screen."; });
+};
+$("btnHost").onclick = () => {
+  role = "host"; players = {}; scores = {}; qi = -1; lastState = null;
+  show("s-host-lobby");
+  $("hostUrl").textContent = location.href;
+  if (window.QRCode) {
+    $("qrcode").innerHTML = "";
+    new QRCode($("qrcode"), { text: location.href, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+  } else { $("qrcode").innerHTML = "<p class='muted'>QR needs internet — share the link above instead.</p>"; }
+  mqttConnect(() => {
+    client.subscribe([TOPIC_ANS, TOPIC_JOIN]);
+    client.on("message", (t, m) => { try { onHostMessage(t, JSON.parse(m.toString())); } catch (e) {} });
+    $("hostConn").textContent = "Connected ✓ Live relay on. Players joining will appear here.";
+    hostLobbyUI();
+  }, (msg) => { $("hostConn").textContent = "⚠ " + msg; });
+};
+$("btnSolo").onclick = () => {
+  myName = $("playerName").value.trim() || "You";
+  soloStart();
+};
+$("btnStart").onclick = () => {
+  scores = {};
+  Object.values(players).forEach(p => scores[p.id] = { id: p.id, name: p.name, score: 0 });
+  hostNext();
+};
+$("btnAgain").onclick = () => location.reload();
+$("btnBack1").onclick = () => { try { client && client.end(true); } catch (e) {} location.reload(); };
+$("btnBack2").onclick = () => { try { client && client.end(true); } catch (e) {} location.reload(); };
+</script>
+</body>
+</html>
